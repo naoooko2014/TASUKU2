@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="タスク帳">
+<title>⏰ タスク帳</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;background:#FFF9FB;color:#1F1B2E;-webkit-font-smoothing:antialiased;}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;}
+.header{background:#fff;border-bottom:1px solid rgba(244,114,182,.18);padding:14px 16px 10px;padding-top:max(14px,env(safe-area-inset-top,14px));flex-shrink:0;display:flex;align-items:center;gap:10px;}
+.app-title{font-size:20px;font-weight:700;color:#1F1B2E;}
+.nav{display:flex;background:#fff;border-bottom:1px solid rgba(244,114,182,.18);flex-shrink:0;}
+.nb{flex:1;padding:10px 1px 8px;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;}
+.nav-icon{font-size:16px;line-height:1;}
+.nav-label{font-size:9px;color:#9CA3AF;white-space:nowrap;}
+.nb.active .nav-label{color:#BE185D;font-weight:700;}
+.nb.active::after{content:'';position:absolute;bottom:0;left:15%;right:15%;height:2.5px;background:#F472B6;border-radius:2px 2px 0 0;}
+.bdg{position:absolute;top:6px;right:calc(50% - 14px);background:#F87171;color:#fff;font-size:9px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:none;align-items:center;justify-content:center;padding:0 3px;}
+.pages{flex:1;overflow:hidden;position:relative;}
+.pg{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px calc(80px + env(safe-area-inset-bottom,0px));display:none;}
+.pg.on{display:block;}
+.hero{background:linear-gradient(135deg,#FDF2F8,#F5F3FF);border:1px solid #FBCFE8;border-radius:14px;padding:14px;margin-bottom:10px;}
+.hero-big{font-size:18px;font-weight:700;color:#BE185D;}
+.hero-sub{font-size:12px;color:#9D174D;margin-top:2px;}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
+.sc{background:#F9FAFB;border-radius:10px;padding:8px 10px;display:flex;align-items:center;gap:8px;cursor:pointer;border:1px solid #F3F4F6;}
+.sc:active{opacity:.7;}
+.sc-n{font-size:22px;font-weight:700;line-height:1;}
+.sc-l{font-size:12px;color:#6B7280;font-weight:500;}
+.sec{font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.5px;margin:10px 0 6px;}
+.lg{background:#fff;border:1px solid rgba(244,114,182,.15);border-radius:14px;overflow:hidden;margin-bottom:8px;}
+.li{display:flex;align-items:center;gap:9px;padding:10px 11px;border-bottom:1px solid rgba(244,114,182,.1);cursor:pointer;}
+.li:last-child{border-bottom:none;}
+.li:active{background:#FDF2F8;}
+.ub{width:4px;height:36px;border-radius:2px;flex-shrink:0;}
+.ck{width:22px;height:22px;border-radius:50%;border:2px solid #F472B6;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;}
+.ck.on{background:#34D399;border-color:#34D399;color:#fff;}
+.ck.cpn{border-color:#FBBF24;}.ck.cpn.on{background:#FBBF24;border-color:#FBBF24;}
+.lb{flex:1;min-width:0;}
+.lt{font-size:14px;font-weight:500;color:#1F1B2E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lt.x{text-decoration:line-through;color:#9CA3AF;}
+.lm{font-size:11px;color:#6B7280;margin-top:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.la{font-size:12px;color:#D1D5DB;flex-shrink:0;}
+.ep{padding:13px;border-top:1px solid rgba(244,114,182,.15);background:#FDF2F8;}
+.ef{margin-bottom:10px;}
+.el{font-size:11px;color:#6B7280;margin-bottom:4px;display:block;font-weight:500;}
+.ei{width:100%;padding:9px 11px;border-radius:10px;border:1.5px solid #E5E7EB;font-size:14px;background:#fff;color:#1F1B2E;font-family:inherit;-webkit-appearance:none;}
+.ei:focus{outline:none;border-color:#F472B6;}
+.eta{resize:none;height:50px;}
+.er2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ea{display:flex;gap:7px;margin-top:12px;}
+.esv{flex:2;padding:10px;border-radius:10px;border:none;background:#F472B6;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.edl{flex:1;padding:10px;border-radius:10px;border:1px solid #FCA5A5;background:#FEF2F2;color:#DC2626;font-size:14px;cursor:pointer;font-family:inherit;}
+.ecl{flex:1;padding:10px;border-radius:10px;border:1px solid #E5E7EB;background:#fff;color:#6B7280;font-size:14px;cursor:pointer;font-family:inherit;}
+.ts{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.ts::-webkit-scrollbar{display:none;}
+.tc{flex:none;padding:8px 16px;border-radius:20px;font-size:13px;cursor:pointer;border:2px solid #E5E7EB;background:#F9FAFB;color:#6B7280;font-family:inherit;white-space:nowrap;-webkit-tap-highlight-color:transparent;touch-action:manipulation;min-height:36px;}
+.tc.on{border-color:#F472B6;background:#F472B6;color:#fff;font-weight:700;}
+.tadd{flex:none;padding:8px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:2px dashed #D1D5DB;background:none;color:#9CA3AF;font-family:inherit;touch-action:manipulation;min-height:36px;-webkit-tap-highlight-color:transparent;}
+.ug{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.ub2{padding:9px 5px;border-radius:10px;border:2.5px solid #E5E7EB;font-size:12px;cursor:pointer;font-family:inherit;text-align:center;font-weight:500;background:#F9FAFB;color:#9CA3AF;-webkit-tap-highlight-color:transparent;touch-action:manipulation;min-height:40px;}
+.ub2.on{font-weight:700;border-color:transparent;}
+.fr{display:flex;gap:5px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+.fr::-webkit-scrollbar{display:none;}
+.fc{flex:none;padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;border:1.5px solid #E5E7EB;background:#fff;color:#6B7280;font-family:inherit;font-weight:500;}
+.fc.on{background:#FDF2F8;border-color:#F472B6;color:#BE185D;}
+.empty{text-align:center;padding:32px 16px;color:#9CA3AF;font-size:14px;line-height:1.8;}
+.fab-area{position:fixed;bottom:calc(64px + env(safe-area-inset-bottom,0px) + 12px);right:16px;z-index:50;}
+.fab{width:52px;height:52px;border-radius:50%;background:#F472B6;border:none;color:#fff;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(244,114,182,.4);}
+.fab:active{transform:scale(.93);}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid rgba(244,114,182,.18);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);z-index:100;}
+/* 種類別 */
+.type-card{background:#fff;border:1px solid rgba(244,114,182,.15);border-radius:14px;margin-bottom:10px;overflow:hidden;}
+.type-card-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;background:#F9FAFB;}
+.type-card-header:active{opacity:.7;}
+.type-card-name{font-size:15px;font-weight:600;color:#1F1B2E;}
+.type-card-meta{display:flex;align-items:center;gap:8px;}
+.type-badge-active{font-size:12px;padding:3px 9px;border-radius:10px;background:#FDF2F8;color:#BE185D;font-weight:600;}
+.type-badge-done{font-size:11px;color:#9CA3AF;}
+.type-card-arrow{font-size:13px;color:#D1D5DB;margin-left:4px;}
+.type-card-body{display:none;}
+.type-card-body.open{display:block;}
+/* カレンダー */
+.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.ct{font-size:17px;font-weight:700;color:#1F1B2E;}
+.cn2{width:34px;height:34px;border-radius:50%;border:1px solid #E5E7EB;background:#fff;cursor:pointer;font-size:18px;color:#6B7280;display:flex;align-items:center;justify-content:center;}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;background:#fff;border:1px solid rgba(244,114,182,.15);border-radius:14px;padding:10px 8px;margin-bottom:12px;}
+.cdw{text-align:center;font-size:13px;font-weight:700;padding:4px 0 7px;color:#6B7280;}
+.cd{display:flex;flex-direction:column;align-items:center;padding:4px 2px;border-radius:8px;cursor:pointer;min-height:46px;justify-content:flex-start;gap:3px;}
+.cd:active{background:#FDF2F8;}
+.cdn{font-size:15px;color:#1F1B2E;line-height:1.4;}
+.cd.td .cdn{background:#F472B6;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.cd.sl{background:#FDF2F8;outline:2px solid #FBCFE8;}
+.cd.om .cdn{color:#D1D5DB;font-size:13px;}
+.cdts{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:28px;}
+.cdt{width:5px;height:5px;border-radius:50%;}
+.sdt{font-size:14px;font-weight:700;color:#BE185D;margin-bottom:8px;padding:8px 12px;background:#FDF2F8;border-radius:10px;}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:flex-end;justify-content:center;}
+.ms{background:#fff;border-radius:24px 24px 0 0;padding:0 16px calc(24px + env(safe-area-inset-bottom,0px));width:100%;max-height:90vh;overflow-y:auto;}
+.mh{width:36px;height:4px;background:#E5E7EB;border-radius:2px;margin:12px auto 16px;}
+.mt{font-size:16px;font-weight:700;margin-bottom:14px;color:#1F1B2E;}
+.mf{margin-bottom:12px;}
+.mf label{font-size:12px;color:#6B7280;margin-bottom:5px;display:block;font-weight:500;}
+.mf input,.mf textarea{width:100%;padding:10px 12px;border-radius:11px;border:1.5px solid #E5E7EB;font-size:14px;background:#F9FAFB;color:#1F1B2E;font-family:inherit;-webkit-appearance:none;}
+.mf input:focus,.mf textarea:focus{outline:none;border-color:#F472B6;background:#fff;}
+.mf textarea{resize:none;height:56px;}
+.ma2{display:flex;gap:8px;margin-top:16px;}
+.mcl{flex:1;padding:12px;border-radius:12px;border:1px solid #E5E7EB;background:#F9FAFB;color:#6B7280;font-size:14px;cursor:pointer;font-family:inherit;}
+.msv{flex:2;padding:12px;border-radius:12px;border:none;background:#F472B6;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+.add-dialog{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:center;justify-content:center;}
+.add-dialog-box{background:#fff;border-radius:16px;padding:20px;width:280px;max-width:90vw;}
+.add-dialog-title{font-size:14px;font-weight:500;margin-bottom:12px;color:#1F1B2E;}
+.add-dialog-input{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #E5E7EB;font-size:14px;font-family:inherit;color:#1F1B2E;background:#F9FAFB;-webkit-appearance:none;margin-bottom:12px;}
+.add-dialog-input:focus{outline:none;border-color:#F472B6;}
+.add-dialog-btns{display:flex;gap:8px;}
+.add-dialog-cancel{flex:1;padding:10px;border-radius:10px;border:1px solid #E5E7EB;background:#F9FAFB;color:#6B7280;font-size:14px;cursor:pointer;font-family:inherit;}
+.add-dialog-ok{flex:1;padding:10px;border-radius:10px;border:none;background:#F472B6;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <span style="font-size:28px;line-height:1">⏰</span>
+    <span class="app-title">タスク帳</span>
+  </div>
+  <div class="pages">
+    <div class="pg on" id="pg-today"></div>
+    <div class="pg" id="pg-calendar"></div>
+    <div class="pg" id="pg-tasks"></div>
+    <div class="pg" id="pg-bytype"></div>
+    <div class="pg" id="pg-coupons"></div>
+  </div>
+  <div class="fab-area"><button class="fab" id="fab-btn">+</button></div>
+  <div class="bottom-nav">
+    <button class="nb active" data-page="today"><span class="nav-icon">🌸</span><span class="nav-label">今日</span></button>
+    <button class="nb" data-page="calendar"><span class="nav-icon">📅</span><span class="nav-label">カレンダー</span></button>
+    <button class="nb" data-page="tasks"><span class="nav-icon">📋</span><span class="nav-label">タスク</span><span class="bdg" id="bt"></span></button>
+    <button class="nb" data-page="bytype"><span class="nav-icon">🗂️</span><span class="nav-label">種類別</span></button>
+    <button class="nb" data-page="coupons"><span class="nav-icon">🎟️</span><span class="nav-label">クーポン</span><span class="bdg" id="bc"></span></button>
+  </div>
+</div>
+<div class="mo" id="modal" style="display:none">
+  <div class="ms"><div class="mh"></div><div id="modal-body"></div></div>
+</div>
+<div class="add-dialog" id="type-dialog" style="display:none">
+  <div class="add-dialog-box">
+    <div class="add-dialog-title">新しい種類の名前を入力</div>
+    <input class="add-dialog-input" id="type-dialog-input" type="text" placeholder="例：仕事、趣味...">
+    <div class="add-dialog-btns">
+      <button class="add-dialog-cancel" id="type-dialog-cancel">キャンセル</button>
+      <button class="add-dialog-ok" id="type-dialog-ok">追加</button>
+    </div>
+  </div>
+</div>
+<script>
+const URG=[
+  {id:"now",    label:"🔴 今すぐ",     color:"#7F1D1D",bg:"#F87171",bar:"#F87171"},
+  {id:"someday",label:"🟡 いつかやる", color:"#78350F",bg:"#FBBF24",bar:"#FBBF24"},
+  {id:"waiting",label:"🟢 連絡待ち",   color:"#064E3B",bg:"#34D399",bar:"#34D399"},
+  {id:"plan",   label:"🔵 予定",        color:"#1E3A8A",bg:"#60A5FA",bar:"#60A5FA"},
+];
+const DEFT=["自分","家族","家","その他"];
+let ctypes=JSON.parse(localStorage.getItem("v15_ty")||JSON.stringify(DEFT));
+let tasks=JSON.parse(localStorage.getItem("v15_t")||"[]");
+let coupons=JSON.parse(localStorage.getItem("v15_c")||"[]");
+let pg="today",calY,calM,selDay=null,tf="all",cf="all",statF=null;
+let openKind=null,openIdx=null,openTypeCards={};
+const now=new Date();
+const td=()=>now.toISOString().split("T")[0];
+const pad=n=>String(n).padStart(2,"0");
+const ds=(y,m,d)=>`${y}-${pad(m)}-${pad(d)}`;
+const fm=s=>{if(!s)return"";const[,m,d]=s.split("-");return`${+m}/${+d}`;};
+const ff=s=>{if(!s)return"";const[y,m,d]=s.split("-");return`${y}年${+m}月${+d}日`;};
+const dl=s=>{if(!s)return null;const a=new Date(s),b=new Date(td());return Math.round((a-b)/86400000);};
+const ad=n=>{const d=new Date(now);d.setDate(d.getDate()+n);return d.toISOString().split("T")[0];};
+const esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const gu=id=>URG.find(u=>u.id===id)||URG[3];
+const sv=()=>{localStorage.setItem("v15_t",JSON.stringify(tasks));localStorage.setItem("v15_c",JSON.stringify(coupons));localStorage.setItem("v15_ty",JSON.stringify(ctypes));};
+calY=now.getFullYear();calM=now.getMonth()+1;
+if(!tasks.length&&!coupons.length){
+  tasks=[
+    {id:1,title:"企画書を提出する",type:"自分",urgency:"now",memo:"第3回会議用",added:ad(-4),due:ad(3),execDate:ad(1),done:false,doneDate:null},
+    {id:2,title:"歯医者の予約をする",type:"自分",urgency:"plan",memo:"",added:ad(-2),due:ad(8),execDate:null,done:false,doneDate:null},
+    {id:3,title:"子供の参観日",type:"家族",urgency:"plan",memo:"",added:ad(-3),due:ad(5),execDate:ad(5),done:false,doneDate:null},
+    {id:4,title:"水道の修理確認",type:"家",urgency:"waiting",memo:"業者に連絡済み",added:td(),due:null,execDate:null,done:false,doneDate:null},
+    {id:5,title:"英語テキスト購入",type:"自分",urgency:"someday",memo:"TOEIC対策用",added:ad(-7),due:null,execDate:null,done:true,doneDate:ad(-3)},
+    {id:6,title:"家族旅行の計画",type:"家族",urgency:"someday",memo:"夏休み",added:ad(-5),due:null,execDate:null,done:false,doneDate:null},
+    {id:7,title:"エアコン掃除",type:"家",urgency:"plan",memo:"",added:ad(-2),due:ad(14),execDate:null,done:false,doneDate:null},
+  ];
+  coupons=[
+    {id:1,title:"スタバ誕生日クーポン",shop:"スターバックス",discount:"ドリンク1杯無料",expiry:td(),added:ad(-5),memo:"アプリ提示",used:false},
+    {id:2,title:"Amazon割引クーポン",shop:"Amazon",discount:"500円OFF",expiry:ad(4),added:ad(-3),memo:"3000円以上の購入",used:false},
+  ];
+  sv();
+}
+let typeDialogCb=null;
+function showTypeDialog(cb){typeDialogCb=cb;const inp=document.getElementById("type-dialog-input");inp.value="";document.getElementById("type-dialog").style.display="flex";setTimeout(()=>inp.focus(),100);}
+document.getElementById("type-dialog-cancel").addEventListener("click",()=>{document.getElementById("type-dialog").style.display="none";typeDialogCb=null;});
+document.getElementById("type-dialog-ok").addEventListener("click",()=>{const val=document.getElementById("type-dialog-input").value.trim();document.getElementById("type-dialog").style.display="none";if(val&&typeDialogCb)typeDialogCb(val);typeDialogCb=null;});
+document.getElementById("type-dialog-input").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("type-dialog-ok").click();});
+function makeTypeChips(container,getCur,setCur){
+  function ref(){container.innerHTML="";ctypes.forEach(t=>{const btn=document.createElement("button");btn.type="button";btn.className="tc"+(t===getCur()?" on":"");btn.textContent=t;btn.addEventListener("pointerdown",e=>{e.preventDefault();setCur(t);container.querySelectorAll(".tc").forEach(b=>b.classList.toggle("on",b.textContent===t));});container.appendChild(btn);});const ab=document.createElement("button");ab.type="button";ab.className="tadd";ab.textContent="＋追加";ab.addEventListener("pointerdown",e=>{e.preventDefault();showTypeDialog(name=>{if(!ctypes.includes(name)){ctypes.push(name);sv();}setCur(name);ref();});});container.appendChild(ab);}
+  ref();
+}
+function makeUrgBtns(container,getCur,setCur){
+  function ref(){container.innerHTML="";URG.forEach(u=>{const btn=document.createElement("button");btn.type="button";const sel=u.id===getCur();btn.className="ub2"+(sel?" on":"");btn.textContent=u.label;btn.style.background=sel?u.bg:"#F9FAFB";btn.style.color=sel?u.color:"#9CA3AF";btn.style.borderColor=sel?u.bg:"#E5E7EB";btn.addEventListener("pointerdown",e=>{e.preventDefault();setCur(u.id);container.querySelectorAll(".ub2").forEach((b,i)=>{const uu=URG[i];const s=uu.id===getCur();b.className="ub2"+(s?" on":"");b.style.background=s?uu.bg:"#F9FAFB";b.style.color=s?uu.color:"#9CA3AF";b.style.borderColor=s?uu.bg:"#E5E7EB";});});container.appendChild(btn);});}
+  ref();
+}
+function buildEditPanel(kind,idx){
+  const wrap=document.createElement("div");wrap.className="ep";
+  if(kind==="coupon"){const c=coupons[idx];wrap.innerHTML=`<div class="ef"><span class="el">クーポン名</span><input class="ei" id="ep-title" value="${esc(c.title)}"></div><div class="er2"><div class="ef"><span class="el">お店</span><input class="ei" id="ep-shop" value="${esc(c.shop||"")}"></div><div class="ef"><span class="el">割引内容</span><input class="ei" id="ep-disc" value="${esc(c.discount||"")}"></div></div><div class="ef"><span class="el">有効期限</span><input class="ei" type="date" id="ep-exp" value="${c.expiry||""}"></div><div class="ef"><span class="el">メモ</span><textarea class="ei eta" id="ep-memo">${esc(c.memo||"")}</textarea></div><div class="ea"><button class="ecl">閉じる</button><button class="edl">🗑 削除</button><button class="esv">保存</button></div>`;wrap.querySelector(".ecl").addEventListener("click",closeEdit);wrap.querySelector(".edl").addEventListener("click",()=>{coupons.splice(idx,1);sv();closeEdit();render();});wrap.querySelector(".esv").addEventListener("click",()=>{const t=wrap.querySelector("#ep-title").value.trim();if(!t)return;coupons[idx]={...coupons[idx],title:t,shop:wrap.querySelector("#ep-shop").value.trim(),discount:wrap.querySelector("#ep-disc").value.trim(),expiry:wrap.querySelector("#ep-exp").value||null,memo:wrap.querySelector("#ep-memo").value.trim()};sv();closeEdit();render();});return wrap;}
+  const t=tasks[idx];let curType=t.type||ctypes[0];let curUrg=t.urgency||"plan";
+  wrap.innerHTML=`<div class="ef"><span class="el">タスク名</span><input class="ei" id="ep-title" value="${esc(t.title)}"></div><div class="ef"><span class="el">種類</span><div class="ts" id="ep-types"></div></div><div class="ef"><span class="el">緊急度</span><div class="ug" id="ep-urgs"></div></div><div class="ef"><span class="el">メモ</span><textarea class="ei eta" id="ep-memo">${esc(t.memo||"")}</textarea></div><div class="er2"><div class="ef"><span class="el">期限（任意）</span><input class="ei" type="date" id="ep-due" value="${t.due||""}"></div><div class="ef"><span class="el">実行日</span><input class="ei" type="date" id="ep-exec" value="${t.execDate||""}"></div></div><div class="ea"><button class="ecl">閉じる</button><button class="edl">🗑 削除</button><button class="esv">保存</button></div>`;
+  makeTypeChips(wrap.querySelector("#ep-types"),()=>curType,v=>{curType=v;});makeUrgBtns(wrap.querySelector("#ep-urgs"),()=>curUrg,v=>{curUrg=v;});
+  wrap.querySelector(".ecl").addEventListener("click",closeEdit);wrap.querySelector(".edl").addEventListener("click",()=>{tasks.splice(idx,1);sv();closeEdit();render();});wrap.querySelector(".esv").addEventListener("click",()=>{const ti=wrap.querySelector("#ep-title").value.trim();if(!ti)return;tasks[idx]={...tasks[idx],title:ti,type:curType,urgency:curUrg,memo:wrap.querySelector("#ep-memo").value.trim(),due:wrap.querySelector("#ep-due").value||null,execDate:wrap.querySelector("#ep-exec").value||null};sv();closeEdit();render();});
+  return wrap;
+}
+function openEdit(kind,idx){if(openKind===kind&&openIdx===idx){closeEdit();return;}closeEdit();openKind=kind;openIdx=idx;const itemEl=document.getElementById(`item-${kind}-${idx}`);if(!itemEl)return;itemEl.querySelector(".la").textContent="▾";const panel=buildEditPanel(kind,idx);panel.id=`ep-${kind}-${idx}`;itemEl.parentNode.insertBefore(panel,itemEl.nextSibling);}
+function closeEdit(){if(openKind!==null){const old=document.getElementById(`ep-${openKind}-${openIdx}`);if(old)old.remove();const itemEl=document.getElementById(`item-${openKind}-${openIdx}`);if(itemEl)itemEl.querySelector(".la").textContent="›";}openKind=null;openIdx=null;}
+function taskRowEl(t,idx){
+  const u=gu(t.urgency||"plan");const dv=dl(t.due);const over=!t.done&&t.due&&t.due<td();
+  const dueTxt=t.due?(over?`期限${Math.abs(dv)}日超過`:dv===0?"期限今日":dv<=3?`期限あと${dv}日`:`期限${fm(t.due)}`):"";
+  const execTxt=t.execDate?`▶実行${fm(t.execDate)}`:"";
+  const el=document.createElement("div");el.id=`item-task-${idx}`;el.className="li";
+  el.innerHTML=`<div class="ub" style="background:${u.bar}"></div><div class="ck ${t.done?"on":""}"></div><div class="lb"><div class="lt ${t.done?"x":""}">${esc(t.title)}</div><div class="lm"><span style="font-size:10px;padding:2px 7px;border-radius:8px;background:${u.bg};color:${u.color};font-weight:600">${u.label}</span>${t.type?`<span style="font-size:10px;padding:2px 7px;border-radius:8px;background:#F3F4F6;color:#6B7280">${esc(t.type)}</span>`:""}${dueTxt?`<span style="color:${over?"#DC2626":dv<=3?"#B45309":"#6B7280"}">📅${dueTxt}</span>`:""}${execTxt?`<span style="color:#065F46">${execTxt}</span>`:""}</div></div><div class="la">›</div>`;
+  el.querySelector(".ck").addEventListener("click",ev=>{ev.stopPropagation();tasks[idx].done=!tasks[idx].done;tasks[idx].doneDate=tasks[idx].done?td():null;sv();render();});
+  el.addEventListener("click",()=>openEdit("task",idx));return el;
+}
+function couponRowEl(c,idx){
+  const dv=dl(c.expiry);const over=!c.used&&c.expiry&&c.expiry<td();
+  const mt=c.expiry?(over?`期限切れ${Math.abs(dv)}日前`:dv===0?"今日まで！":dv<=7?`あと${dv}日`:`期限${fm(c.expiry)}`):"";
+  const mc=(over||dv===0)?"#DC2626":dv!==null&&dv<=3?"#B45309":"#6B7280";
+  const el=document.createElement("div");el.id=`item-coupon-${idx}`;el.className="li";
+  el.innerHTML=`<div class="ub" style="background:${over?"#F87171":"#FBBF24"}"></div><div class="ck cpn ${c.used?"on":""}"></div><div class="lb"><div class="lt ${c.used?"x":""}">${esc(c.title)}</div><div class="lm">${c.discount?`<span style="color:#065F46;font-weight:500">${esc(c.discount)}</span>`:""}${mt?`<span style="color:${mc}">🗓${mt}</span>`:""}${c.shop?`<span style="color:#9CA3AF">${esc(c.shop)}</span>`:""}</div></div><div class="la">›</div>`;
+  el.querySelector(".ck").addEventListener("click",ev=>{ev.stopPropagation();coupons[idx].used=!coupons[idx].used;sv();render();});
+  el.addEventListener("click",()=>openEdit("coupon",idx));return el;
+}
+function buildList(list,kind){if(!list.length){const d=document.createElement("div");d.className="empty";d.textContent=kind==="task"?"📋 タスクはありません":"🎟️ クーポンはありません";return d;}const g=document.createElement("div");g.className="lg";list.forEach(item=>{const idx=kind==="task"?tasks.indexOf(item):coupons.indexOf(item);g.appendChild(kind==="task"?taskRowEl(item,idx):couponRowEl(item,idx));});return g;}
+function renderToday(){
+  const today=td();const wdays=["日","月","火","水","木","金","土"];const wd=wdays[now.getDay()];
+  const oT=tasks.filter(t=>!t.done&&t.due&&t.due<today);const tT=tasks.filter(t=>!t.done&&t.due===today);const tC=coupons.filter(c=>!c.used&&c.expiry===today);const sC=coupons.filter(c=>{const d=dl(c.expiry);return !c.used&&d!==null&&d>0&&d<=7;});
+  const doneCnt=tasks.filter(t=>t.done&&t.doneDate===today).length;const pendCnt=tasks.filter(t=>!t.done&&t.due&&t.due<=today).length;const cpnCnt=coupons.filter(c=>{const d=dl(c.expiry);return !c.used&&d!==null&&d<=7&&d>=0;}).length;const tLeft=tasks.filter(t=>!t.done).length;const total=oT.length+tT.length+tC.length+sC.length;
+  const el=document.getElementById("pg-today");el.innerHTML="";
+  el.insertAdjacentHTML("beforeend",`<div class="hero"><div class="hero-big">${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日（${wd}）</div><div class="hero-sub">${total>0?`今日やること ${total}件`:"今日はすべて完了！🎉"}</div></div><div class="sg"><div class="sc" id="sc-done"><div class="sc-n" style="color:#059669">${doneCnt}</div><div class="sc-l">今日完了</div></div><div class="sc" id="sc-over"><div class="sc-n" style="color:#DC2626">${pendCnt}</div><div class="sc-l">期限切れ</div></div><div class="sc" id="sc-act"><div class="sc-n" style="color:#BE185D">${tLeft}</div><div class="sc-l">残タスク</div></div><div class="sc" id="sc-cpn"><div class="sc-n" style="color:#B45309">${cpnCnt}</div><div class="sc-l">期限近クーポン</div></div></div>`);
+  document.getElementById("sc-done").addEventListener("click",()=>{statF=statF==="done"?null:"done";renderToday();});document.getElementById("sc-over").addEventListener("click",()=>{statF=statF==="over"?null:"over";renderToday();});document.getElementById("sc-act").addEventListener("click",()=>{statF=statF==="act"?null:"act";renderToday();});document.getElementById("sc-cpn").addEventListener("click",()=>{statF=statF==="cpn"?null:"cpn";renderToday();});
+  if(statF){let lbl="",list=[],kind="task";if(statF==="done"){lbl="✅ 今日完了";list=tasks.filter(t=>t.done&&t.doneDate===today);}else if(statF==="over"){lbl="⚠️ 期限切れ";list=oT;}else if(statF==="act"){lbl="📋 残タスク";list=tasks.filter(t=>!t.done);}else if(statF==="cpn"){lbl="🎟️ 期限近クーポン";list=coupons.filter(c=>{const d=dl(c.expiry);return !c.used&&d!==null&&d<=7&&d>=0;});kind="coupon";}el.insertAdjacentHTML("beforeend",`<div class="sec">${lbl}</div>`);el.appendChild(buildList(list,kind));}
+  else{if(oT.length){el.insertAdjacentHTML("beforeend",`<div class="sec">⚠️ 期限切れ</div>`);el.appendChild(buildList(oT,"task"));}if(tC.length){el.insertAdjacentHTML("beforeend",`<div class="sec">🚨 今日期限のクーポン</div>`);el.appendChild(buildList(tC,"coupon"));}if(tT.length){el.insertAdjacentHTML("beforeend",`<div class="sec">📌 今日のタスク</div>`);el.appendChild(buildList(tT,"task"));}if(sC.length){el.insertAdjacentHTML("beforeend",`<div class="sec">🎟️ まもなく期限</div>`);el.appendChild(buildList(sC,"coupon"));}if(!total)el.insertAdjacentHTML("beforeend",`<div class="empty">今日のやることはありません！<br>ゆっくり休んで♪</div>`);}
+}
+function renderCalendar(){
+  const months=["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+  const fd1=new Date(calY,calM-1,1).getDay();const dim=new Date(calY,calM,0).getDate();const dip=new Date(calY,calM-1,0).getDate();
+  const em={};const mk=(s,col)=>{if(!s)return;if(!em[s])em[s]=[];em[s].push(col);};
+  tasks.filter(t=>!t.done).forEach(t=>{const u=gu(t.urgency||"plan");if(t.due)mk(t.due,u.bar);if(t.execDate)mk(t.execDate,"#A78BFA");});
+  coupons.filter(c=>!c.used).forEach(c=>{const d=dl(c.expiry);if(c.expiry)mk(c.expiry,d<=0?"#F87171":"#FBBF24");});
+  const el=document.getElementById("pg-calendar");el.innerHTML="";
+  el.insertAdjacentHTML("beforeend",`<div class="ch"><button class="cn2" id="cprev">‹</button><span class="ct">${calY}年 ${months[calM-1]}</span><button class="cn2" id="cnext">›</button></div><div class="cg" id="cgrid"></div>`);
+  document.getElementById("cprev").addEventListener("click",()=>{calM--;if(calM<1){calM=12;calY--;}render();});document.getElementById("cnext").addEventListener("click",()=>{calM++;if(calM>12){calM=1;calY++;}render();});
+  const cg=document.getElementById("cgrid");
+  ["日","月","火","水","木","金","土"].forEach((d,i)=>{const e2=document.createElement("div");e2.className="cdw";e2.textContent=d;if(i===0)e2.style.color="#DC2626";if(i===6)e2.style.color="#2563EB";cg.appendChild(e2);});
+  for(let i=0;i<fd1;i++){const d=dip-fd1+i+1;const e2=document.createElement("div");e2.className="cd om";e2.innerHTML=`<span class="cdn">${d}</span>`;cg.appendChild(e2);}
+  for(let d=1;d<=dim;d++){const dss=ds(calY,calM,d);const isT=dss===td();const isS=dss===selDay;const ev=em[dss];const e2=document.createElement("div");e2.className=`cd${isT?" td":""}${isS?" sl":""}`;let html=`<span class="cdn">${d}</span>`;if(ev){const dots=[...new Set(ev)].slice(0,4).map(c=>`<div class="cdt" style="background:${c}"></div>`).join("");html+=`<div class="cdts">${dots}</div>`;}e2.innerHTML=html;e2.addEventListener("click",()=>{selDay=selDay===dss?null:dss;render();});cg.appendChild(e2);}
+  const rem=(7-((fd1+dim)%7))%7;for(let i=1;i<=rem;i++){const e2=document.createElement("div");e2.className="cd om";e2.innerHTML=`<span class="cdn">${i}</span>`;cg.appendChild(e2);}
+  if(selDay){const dt=tasks.filter(t=>t.due===selDay||t.execDate===selDay);const dc=coupons.filter(c=>c.expiry===selDay);el.insertAdjacentHTML("beforeend",`<div class="sdt">📌 ${ff(selDay)}</div>`);if(!dt.length&&!dc.length)el.insertAdjacentHTML("beforeend",`<div class="empty" style="padding:16px">この日の予定はありません</div>`);if(dt.length)el.appendChild(buildList(dt,"task"));if(dc.length)el.appendChild(buildList(dc,"coupon"));}
+  else el.insertAdjacentHTML("beforeend",`<div class="empty" style="padding:14px;font-size:13px">日付をタップして確認</div>`);
+}
+function renderTasks(){
+  const el=document.getElementById("pg-tasks");el.innerHTML="";
+  const fr=document.createElement("div");fr.className="fr";
+  [["all","すべて"],["active","未完了"],["today","今日"],["now","🔴今すぐ"],["overdue","期限切れ"],["done","完了"]].forEach(([v,l])=>{const b=document.createElement("button");b.className="fc"+(tf===v?" on":"");b.textContent=l;b.addEventListener("click",()=>{tf=v;renderTasks();});fr.appendChild(b);});
+  el.appendChild(fr);let list=tasks;
+  if(tf==="active")list=list.filter(t=>!t.done);if(tf==="done")list=list.filter(t=>t.done);if(tf==="overdue")list=list.filter(t=>!t.done&&t.due&&t.due<td());if(tf==="today")list=list.filter(t=>!t.done&&t.due===td());if(tf==="now")list=list.filter(t=>!t.done&&t.urgency==="now");
+  el.appendChild(buildList(list,"task"));
+}
+function renderByType(){
+  const el=document.getElementById("pg-bytype");el.innerHTML="";
+  const allTypes=[...new Set([...ctypes,...tasks.map(t=>t.type||"その他")])];
+  if(!allTypes.length){el.insertAdjacentHTML("beforeend",`<div class="empty">📋 タスクがありません</div>`);return;}
+  allTypes.forEach(type=>{
+    const typeTasks=tasks.filter(t=>t.type===type);
+    const activeCnt=typeTasks.filter(t=>!t.done).length;
+    const doneCnt=typeTasks.filter(t=>t.done).length;
+    const isOpen=!!openTypeCards[type];
+    const card=document.createElement("div");card.className="type-card";
+    const hdr=document.createElement("div");hdr.className="type-card-header";
+    hdr.innerHTML=`<div class="type-card-name">${esc(type)}</div><div class="type-card-meta"><span class="type-badge-active">未完了 ${activeCnt}</span>${doneCnt>0?`<span class="type-badge-done">完了 ${doneCnt}</span>`:""}<span class="type-card-arrow">${isOpen?"▾":"›"}</span></div>`;
+    hdr.addEventListener("click",()=>{openTypeCards[type]=!openTypeCards[type];renderByType();});
+    card.appendChild(hdr);
+    const body=document.createElement("div");body.className="type-card-body"+(isOpen?" open":"");
+    if(isOpen){
+      if(!typeTasks.length){const emp=document.createElement("div");emp.style.padding="16px 14px";emp.style.color="#9CA3AF";emp.style.fontSize="13px";emp.textContent="このカテゴリのタスクはありません";body.appendChild(emp);}
+      else{const sorted=[...typeTasks.filter(t=>!t.done),...typeTasks.filter(t=>t.done)];const g=document.createElement("div");g.className="lg";g.style.cssText="margin:0;border-radius:0;border-left:none;border-right:none;border-bottom:none;";sorted.forEach(t=>{const idx=tasks.indexOf(t);g.appendChild(taskRowEl(t,idx));});body.appendChild(g);}
+    }
+    card.appendChild(body);el.appendChild(card);
+  });
+  const fab=document.createElement("div");fab.className="fab";fab.style.marginTop="12px";const fb=document.createElement("button");fb.style.cssText="width:46px;height:46px;border-radius:50%;background:#F472B6;border:none;font-size:22px;color:#fff;cursor:pointer;";fb.textContent="+";fb.addEventListener("click",openAdd);fab.appendChild(fb);el.appendChild(fab);
+}
+function renderCoupons(){
+  const el=document.getElementById("pg-coupons");el.innerHTML="";
+  const fr=document.createElement("div");fr.className="fr";
+  [["all","すべて"],["active","有効"],["soon","7日以内"],["expired","期限切れ"],["used","使用済み"]].forEach(([v,l])=>{const b=document.createElement("button");b.className="fc"+(cf===v?" on":"");b.textContent=l;b.addEventListener("click",()=>{cf=v;renderCoupons();});fr.appendChild(b);});
+  el.appendChild(fr);let list=coupons;
+  if(cf==="active")list=list.filter(c=>!c.used&&(!c.expiry||dl(c.expiry)>=0));if(cf==="soon")list=list.filter(c=>{const d=dl(c.expiry);return !c.used&&d!==null&&d>=0&&d<=7;});if(cf==="used")list=list.filter(c=>c.used);if(cf==="expired")list=list.filter(c=>!c.used&&c.expiry&&c.expiry<td());
+  el.appendChild(buildList(list,"coupon"));
+}
+let addMode="task",addType=ctypes[0],addUrg="plan";
+function openAdd(){addMode=(pg==="coupons")?"coupon":"task";addType=ctypes[0];addUrg="plan";buildAddModal();document.getElementById("modal").style.display="flex";}
+function closeM(){document.getElementById("modal").style.display="none";}
+document.getElementById("modal").addEventListener("click",e=>{if(e.target===document.getElementById("modal"))closeM();});
+function buildAddModal(){
+  const body=document.getElementById("modal-body");body.innerHTML="";
+  const isCpn=addMode==="coupon";
+  body.insertAdjacentHTML("beforeend",`<div class="mt">${isCpn?"🎟️ クーポンを追加":"✏️ タスクを追加"}</div><div class="mf"><label>${isCpn?"クーポン名":"タスク名"}</label><input id="f-title" type="text" placeholder="${isCpn?"例：スタバクーポン":"例：企画書を提出する"}"></div>`);
+  if(isCpn){body.insertAdjacentHTML("beforeend",`<div class="mf"><label>お店・サービス名</label><input id="f-shop" type="text" placeholder="例：Amazon"></div><div class="mf"><label>割引内容</label><input id="f-discount" type="text" placeholder="例：10%OFF"></div><div class="mf"><label>有効期限</label><input id="f-expiry" type="date"></div><div class="mf"><label>メモ</label><textarea id="f-memo" placeholder="使用条件など..."></textarea></div>`);}
+  else{body.insertAdjacentHTML("beforeend",`<div class="mf"><label>種類</label><div class="ts" id="add-types"></div></div><div class="mf"><label>緊急度</label><div class="ug" id="add-urgs"></div></div><div class="mf"><label>メモ</label><textarea id="f-memo" placeholder="詳細・メモ..."></textarea></div><div class="mf"><label>期限（任意・空白OK）</label><input id="f-due" type="date"></div><div class="mf"><label>実行日</label><input id="f-exec" type="date"></div>`);makeTypeChips(document.getElementById("add-types"),()=>addType,v=>{addType=v;});makeUrgBtns(document.getElementById("add-urgs"),()=>addUrg,v=>{addUrg=v;});}
+  const ma=document.createElement("div");ma.className="ma2";const bc=document.createElement("button");bc.className="mcl";bc.textContent="キャンセル";bc.addEventListener("click",closeM);const bs=document.createElement("button");bs.className="msv";bs.textContent="追加する";bs.addEventListener("click",saveAdd);ma.appendChild(bc);ma.appendChild(bs);body.appendChild(ma);
+}
+function saveAdd(){
+  const title=document.getElementById("f-title")?.value?.trim();if(!title){document.getElementById("f-title")?.focus();return;}
+  if(addMode==="coupon"){coupons.unshift({id:Date.now(),title,shop:document.getElementById("f-shop")?.value?.trim()||"",discount:document.getElementById("f-discount")?.value?.trim()||"",expiry:document.getElementById("f-expiry")?.value||null,memo:document.getElementById("f-memo")?.value?.trim()||"",added:td(),used:false});}
+  else{tasks.unshift({id:Date.now(),title,type:addType,urgency:addUrg,memo:document.getElementById("f-memo")?.value?.trim()||"",due:document.getElementById("f-due")?.value||null,execDate:document.getElementById("f-exec")?.value||null,added:td(),done:false,doneDate:null});}
+  sv();closeM();render();
+}
+document.getElementById("fab-btn").addEventListener("click",openAdd);
+const PAGES=["today","calendar","tasks","bytype","coupons"];
+document.querySelectorAll(".nb").forEach((b,i)=>{b.addEventListener("click",()=>{pg=PAGES[i];statF=null;closeEdit();document.querySelectorAll(".nb").forEach((bb,j)=>bb.classList.toggle("active",j===i));document.querySelectorAll(".pg").forEach(e=>e.classList.remove("on"));document.getElementById("pg-"+pg).classList.add("on");render();});});
+function badges(){const tc2=tasks.filter(t=>!t.done&&t.due&&t.due<=td()).length;const cc2=coupons.filter(c=>{const d=dl(c.expiry);return !c.used&&d!==null&&d<=7&&d>=0;}).length;const bt=document.getElementById("bt");const bc=document.getElementById("bc");if(bt){bt.textContent=tc2;bt.style.display=tc2>0?"flex":"none";}if(bc){bc.textContent=cc2;bc.style.display=cc2>0?"flex":"none";}}
+function render(){closeEdit();if(pg==="today")renderToday();else if(pg==="calendar")renderCalendar();else if(pg==="tasks")renderTasks();else if(pg==="bytype")renderByType();else if(pg==="coupons")renderCoupons();badges();}
+render();
+</script>
+</body>
+</html>
